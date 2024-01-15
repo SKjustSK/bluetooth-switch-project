@@ -15,49 +15,55 @@ SoftwareSerial communicator(rxPin, txPin);
 
 String recieved;
 
-// TEMP, all recieved_serial mentions are for test purposes, to use be used on serial monitor
+// TO REMOVE
 String recieved_serial;
 
 int switches[num_of_switches] = { 10 , 9 , 8 };
+
+// Last digit = ON/OFF
+// Previous digits -> Switch number
+const String switch_ID[2][num_of_switches] = {
+    {"10","20","30"}, // OFF
+    {"11","21","31"} // ON
+};
 
 void setup()
 {
     pinMode(rxPin, INPUT);
     pinMode(txPin, OUTPUT);
-
     for (int i = 0 ; i < num_of_switches ; i++)
     {
         pinMode(switches[i], OUTPUT);
     }
-
     Serial.begin(9600);
     communicator.begin(9600);
 }
 
 void loop()
 {
-    // Recieving data in String format  
     recieved = communicator.readString();
+    recieved.trim();
 
-    // TEST to use using Serial Monitor
+    // TO REMOVE
     recieved_serial = Serial.readString();
-
-    // To avoid random complications
-    if (recieved != NULL || recieved_serial != NULL)
+    recieved_serial.trim();
+    
+    // Main Logic
+    if (recieved != NULL || recieved_serial != NULL) // To avoid random complications
     {
-        // Loop to turn on switch based on information recieved, ex. 101 recieved, then switch 1 OFF, switch 2 ON, switch 3 OFF
-        // HW-316 relay module uses INVERSE LOGIC
-        for (int i = 0 ; i < num_of_switches ; i++)
-        {
-            if (recieved[i] == '0' || recieved_serial[i] == '0')
+        Serial.println(recieved);
+        
+        for (int i = 0 ; i < num_of_switches ; i++) 
+        {   
+            // HW-316 relay module uses INVERSE LOGIC
+            if (recieved.equals(switch_ID[0][i]) || recieved_serial.equals(switch_ID[0][i]))
             {
-                // Turns ON
-                digitalWrite(switches[i], HIGH);
+                digitalWrite(switches[i], HIGH); // Turns OFF
             }
-            else if (recieved[i] == '1' || recieved_serial[i] == '1')
+            else if (recieved.equals(switch_ID[1][i]) || recieved_serial.equals(switch_ID[1][i]))
             {
-                // Turns OFF
-                digitalWrite(switches[i], LOW);
+               
+                digitalWrite(switches[i], LOW); // Turns ON
             }
         }
     }
